@@ -1,0 +1,8 @@
+---
+tuning_lista_de_usuarios:
+ - { username: "miguel", group: "administradores", key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"}
+
+tuning_paqueteria_utils:
+ - net-tools
+ - vim
+ - lvm2

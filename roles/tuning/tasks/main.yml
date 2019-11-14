@@ -1,0 +1,29 @@
+---
+- name: Creacion de Grupos 
+  user:
+   name: administradores
+   state: present
+
+- name: Creaion de usuarios
+  user:
+   name: "{{item.username}}" 
+   group: "{{ item.group }}"
+   state: present
+  with_items: "{{ tuning_lista_de_usuarios }}"
+
+- name: Configuracion de VISUDO
+  template:
+   src: "sudoers.j2"
+   dest: "/etc/sudoers"
+   validate: 'visudo -cf %s'
+
+- name: Agregar llaves publicas
+  authorized_key:
+   user: "{{ item.username }}"
+   key: "{{ item.key }}"
+  with_items: "{{ tuning_lista_de_usuarios }}" 
+ 
+- name: Paqueteria nesesarias
+  yum: 
+   name: "{{ tuning_paqueteria_utils }}" 
+   state: latest

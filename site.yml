@@ -1,0 +1,28 @@
+---
+- name: Afinamiento del sistema Operativo
+  hosts: all
+  become: true
+  roles:
+   - tuning
+  vars_files:
+   - vars.yml
+
+- name: Instalacion de Elastic Search
+  hosts: elastic
+  become: true
+  roles:
+   - elastic
+
+- name: Instalacion de Kibana
+  hosts: kibana
+  become: true
+  roles:
+   - kibana
+      
+#- name: instalacion de Logstash
+#  hosts: logstash
+#  become: true
+
+#- name: instalacion de Maven
+#  hosts: maven
+#  become: true

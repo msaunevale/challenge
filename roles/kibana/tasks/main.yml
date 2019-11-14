@@ -1,0 +1,60 @@
+---
+- name: Creando VG vg_kibana
+  lvg:
+   vg: "{{ kibana_volum_group }}"
+   pvs: /dev/sdb
+   pesize: "4"
+   state: present
+
+- name: Creando volumenes logicos
+  lvol:
+   vg: "{{ kibana_volum_group }}"
+   lv: "{{ kibana_logical_volum }}"
+   size: +100%FREE
+
+- name: Crear Sistema de archivos en el Nuevo disco
+  filesystem:
+   fstype: "xfs"
+   dev: "/dev/{{ kibana_volum_group }}/{{ kibana_logical_volum }}"
+
+- name: Creacion de directorio
+  file:
+   path: "{{ kibana_path_data }}"
+   recurse: yes
+
+- name: Montaje de dispositivo en un directorio
+  mount:
+   src: "/dev/{{ kibana_volum_group }}/{{ kibana_logical_volum }}"
+   path: "{{ kibana_path_data }}"
+   fstype: xfs
+   boot: yes
+   state: mounted
+
+- name: Instalacion de Dependencias
+  yum:
+   name:
+    - yum-utils
+    - device-mapper-persistent-data
+   state: latest
+
+- name: Agregar llaves gpg key de docker
+  rpm_key:
+   key: https://download.docker.com/linux/centos/gpg
+   state: "present"
+
+- name: Agregar repositorio de Docker 
+  get_url:
+   url: https://download.docker.com/linux/centos/docker-ce.repo
+   dest: /etc/yum.repos.d/docer-ce.repo
+
+- name: Instalacion de Docker
+  yum:
+   name:
+    - docker-ce
+   state: latest
+
+- name: Inicio del servicio de Docker
+  service:
+   name: docker
+   state: started
+   enabled: yes

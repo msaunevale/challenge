@@ -1,0 +1,12 @@
+---
+
+elasticsearch_volum_group: vg_elastic
+elasticsearch_logical_volum: lv_elastic
+elasticsearch_cluster_name: "cluster-elk-everis"
+elasticsearch_node_name: "{{ ansible_hostname }}"
+elasticsearch_path_data: "/var/lib/elasticsearch"
+elasticsearch_path_logs: "/var/log/elasticsearch"
+elasticsearch_network_host: "{{ ansible_eth1.ipv4.address }}"
+elasticsearch_http_port: 9200
+elasticsearch_heap_size_min: 1g
+elasticsearch_heap_size_max: 1g

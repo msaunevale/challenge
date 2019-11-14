@@ -1,0 +1,90 @@
+---
+- name: Creando VG vg_elastic
+  lvg:
+   vg: "{{ elasticsearch_volum_group }}"
+   pvs: /dev/sdb
+   pesize: "4"
+   state: present
+
+- name: Creando volumenes logicos
+  lvol:
+   vg: "{{ elasticsearch_volum_group }}"
+   lv: "{{ elasticsearch_logical_volum }}"
+   size: +100%FREE
+
+- name: Crear Sistema de archivos en el Nuevo disco
+  filesystem:
+   fstype: "xfs"
+   dev: "/dev/{{ elasticsearch_volum_group }}/{{ elasticsearch_logical_volum }}"
+
+- name: Creacion de directorios
+  file:
+   path: "{{ elasticsearch_path_data }}"
+   recurse: yes
+
+- name: Montaje de dispositivo en un directorio
+  mount:
+   src: "/dev/{{ elasticsearch_volum_group }}/{{ elasticsearch_logical_volum }}"
+   path: "{{ elasticsearch_path_data }}"
+   fstype: xfs
+   boot: yes
+   state: mounted
+
+- name: Importar llave GPG de ELK
+  rpm_key:
+   state: present
+   key: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+
+- name: Repositorio ElK
+  copy:
+   src: elastic.repo.j2
+   dest: /etc/yum.repos.d/elastic.repo
+
+- name: Instalacion de Elastic
+  yum:
+   name: 
+    - java
+    - elasticsearch
+   state: latest
+
+- name: Configuracion de Limits
+  pam_limits:
+   domain: '{{ item.user }}'
+   limit_type: '{{ item.limit_type }}'
+   limit_item: '{{ item.limit_item }}'
+   value: '{{ item.value }}'
+  with_items:
+   - { user: elasticsearch, limit_type: soft, limit_item: nproc, value: 65535 } 
+   - { user: elasticsearch, limit_type: hard, limit_item: nproc, value: 65535 }
+   - { user: elasticsearch, limit_type: soft, limit_item: nofile, value: 65535 }
+   - { user: elasticsearch, limit_type: hard, limit_item: nofile, value: 65535 }  
+
+- name: Configuracion de Areas de Memoria
+  sysctl:
+    name: vm.max_map_count
+    value: '262144'
+    state: present
+
+- name: Configuracion de Elastic
+  template:
+   src: "{{ item }}.j2"
+   dest: "/etc/elasticsearch/{{ item }}"
+   owner: root
+   group: elasticsearch
+   mode: 0660
+  with_items:
+   - elasticsearch.yml
+   - jvm.options
+  notify: restart_elastic 
+
+- name: Iniciar Elasticsearch
+  service:
+   name: elasticsearch
+   state: started
+   enabled: true
+
+
+
+
+
+

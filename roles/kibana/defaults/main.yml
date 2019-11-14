@@ -1,0 +1,5 @@
+---
+kibana_volum_group: vg_kibana
+kibana_logical_volum: lv_kibana
+kibana_path_data: "/var/lib/kibana"
+
